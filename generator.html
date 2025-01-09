@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Color Palette Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grid-overlay"></div>
+  <div class="section">
+    <div class="container">
+      <div class="card card--large">
+        <h1 class="section-header">COLOR PALETTE GENERATOR</h1>
+
+        <div class="grid grid--auto">
+          <div class="card">
+            <h3 class="skill-category-title">ANCHOR POINT 1</h3>
+            <div class="input-group">
+              <div class="input-container">
+                <label class="input-label" for="a1r">R:</label>
+                <input type="number" id="a1r" min="0" max="255" class="input" value="27">
+              </div>
+              <div class="input-container">
+                <label class="input-label" for="a1g">G:</label>
+                <input type="number" id="a1g" min="0" max="255" class="input" value="31">
+              </div>
+              <div class="input-container">
+                <label class="input-label" for="a1b">B:</label>
+                <input type="number" id="a1b" min="0" max="255" class="input" value="7">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="skill-category-title">ANCHOR POINT 2</h3>
+            <div class="input-group">
+              <div class="input-container">
+                <label class="input-label" for="a2r">R:</label>
+                <input type="number" id="a2r" min="0" max="255" class="input" value="245">
+              </div>
+              <div class="input-container">
+                <label class="input-label" for="a2g">G:</label>
+                <input type="number" id="a2g" min="0" max="255" class="input" value="241">
+              </div>
+              <div class="input-container">
+                <label class="input-label" for="a2b">B:</label>
+                <input type="number" id="a2b" min="0" max="255" class="input" value="237">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 2rem;">
+          <div class="menu">
+            <div class="hsl-type-selector">
+              <button class="button active" data-type="hue">HUE</button>
+              <button class="button" data-type="saturation">SATURATION</button>
+              <button class="button" data-type="lightness">LIGHTNESS</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <div class="grid" style="gap: 1rem;">
+              <div class="input-container" style="flex-direction: row; align-items: center;">
+                <label class="input-label">Active Range:</label>
+                <select id="rangeSelect" class="input" style="margin-left: 1rem;">
+                  <option value="0" selected>Range 1 (0.00 - 1.00)</option>
+                </select>
+                <button id="addRange" class="button" style="margin-left: 1rem;">Add Range</button>
+                <button id="removeRange" class="button" style="margin-left: 1rem;">Remove Range</button>
+              </div>
+
+              <div class="range-controls">
+                <div class="input-container" style="flex-direction: row; align-items: center;">
+                  <label class="input-label">Min:</label>
+                  <input type="range" id="rangeMin" min="0" max="1" step="0.005" class="input" value="0" style="margin: 0 1rem;">
+                  <span id="rangeMinValue" class="info-value">0.00</span>
+                </div>
+                <div class="input-container" style="flex-direction: row; align-items: center;">
+                  <label class="input-label">Max:</label>
+                  <input type="range" id="rangeMax" min="0" max="1" step="0.005" class="input" value="1" style="margin: 0 1rem;">
+                  <span id="rangeMaxValue" class="info-value">1.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+            <h4 class="skill-category-title">CURRENT RANGES</h4>
+            <div id="rangeItems" class="menu">
+              <div class="menu-item">Range 1: 0.00 - 1.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 2rem;">
+          <div class="input-container" style="flex-direction: row; align-items: center;">
+            <label class="input-label">Palette Size (2^n):</label>
+            <input type="number" id="paletteSize" min="1" max="5" value="4" class="input" style="width: 5rem; margin: 0 1rem;">
+            <span id="actualSize" class="info-value">= 16</span>
+            <button id="generate" class="button" style="margin-left: 1rem;">Generate Palette</button>
+            <button id="copyColors" class="button" style="margin-left: 1rem;">Copy Colors</button>
+          </div>
+        </div>
+
+        <div id="paletteGrid" class="grid grid--auto" style="margin-top: 2rem;"></div>
+
+        <div class="card" style="margin-top: 3rem;">
+          <h3 class="skill-category-title">EXPLANATION</h3>
+          
+          <div class="about-content">
+            <p style="margin-bottom: 1.5rem;">
+              The fundamental problem of color palette generation is trying to approximate a continuous space (RGB) with discrete points. 
+              Most color palette generators either sample randomly from images or rely on standard color schemes (monochromatic, complementary, etc.), often combining them to create a limited set of colors (like 16; choose 1 -> calculate 3 -> 4; take 1 of 4 -> calculate 3 -> repeat for remaining 3 -> 16).
+              The results are fine, but I wanted to find a way to do this that wasn't just arbitrary selection or simple interpolation between points.
+            </p>
+            
+            <div class="menu">
+              <div class="menu-item">
+                The core idea is treating the RGB cube as a metric space. Each color is just a point (R,G,B), so we can choose to define the distance between colors as the maximum difference in any component: max(|R₁-R₂|, |G₁-G₂|, |B₁-B₂|). 
+                This is the Chebyshev distance, and it creates these interesting octahedral spheres of influence around each color. 
+              </div>
+              
+              <div class="menu-item">
+                Why did I choose it over the Euclidean distance? If you want to optimize the color space covered by a palette of arbitrary size, you want to focus on the largest difference in each dimension separately.
+                This means two colors are considered "far apart" if any one channel has a large difference, regardless of the other channels, so a palette created with consideration of the Chebyshev distance ensures that even if two colors are similar in R and G but very different in B, they are considered distinct.
+              </div>
+
+              <div class="menu-item">
+                Using this distance metric, we can frame palette generation as a coverage problem: given two anchor points (your chosen colors), how do we place 2ⁿ points (specifically, the 2ⁿ−2 remaining after anchoring) to minimize the maximum distance any possible color could be from its nearest palette color? 
+                This reminds me — I should probably mention why I chose to exclusively focus on palettes of size 2ⁿ. I've been fixated on computer graphics lately, 
+                so while I was reading about vintage computer hardware graphics and subjecting myself to torturous manual labor (creating a graphics API in C), I decided on constraining the space with a binary partition.
+                Why? Binary chunks are chad.
+              </div>
+            </div>
+        
+            <h3 class="skill-category-title" style="margin-top: 2rem;">GENERALIZED ALGORITHM</h3>
+            
+            <p style="margin-bottom: 1.5rem;">
+              The optional HSL filtering only restricts the range between the two anchor points considered for palette generation. 
+              Since the distance metric is still applied, it ensures that the optimal coverage within this restricted range is maintained.              
+            </p>
+
+            <div class="menu">
+              <div class="menu-item">
+                Ω is finite with |Ω| = 256³
+                <br>For any x = (r,g,b) ∈ Ω, each component satisfies 0 ≤ r,g,b ≤ 255                
+              </div>
+
+              <div class="menu-item">
+                Given m ∈ ℕ, an anchor set A = {a₁,...,aₘ} ⊂ Ω consists of m distinct predetermined points.          
+              </div>
+
+              <div class="menu-item">
+                For n ∈ ℕ with 2ⁿ ≥ m, a valid palette P ⊂ Ω satisfies:
+                <br><br>A ⊆ P (anchor containment)
+                <br>|P| = 2ⁿ (size constraint)
+
+                <br><br>Let 𝒫_A denote the set of all valid palettes for anchor set A.
+              </div>
+
+              <div class="menu-item">
+                For any P ∈ 𝒫_A:
+                <br>|P\A| = 2ⁿ - m
+                <br><br>|P| = 2ⁿ and A ⊆ P
+                <br>|P\A| = |P| - |A| = 2ⁿ - m
+              </div>
+
+              <div class="menu-item">
+                For x = (r₁,g₁,b₁), y = (r₂,g₂,b₂) ∈ Ω, define:
+                <br>d(x,y) = max(|r₁-r₂|, |g₁-g₂|, |b₁-b₂|)                
+              </div>
+
+              <div class="menu-item">
+                (Ω,d) is a metric space.
+                <br><br>
+                For all x,y,z ∈ Ω:
+                <br> d(x,y) = 0 ⟺ x = y
+                <br>(⇒) If d(x,y) = 0, then max(|r₁-r₂|, |g₁-g₂|, |b₁-b₂|) = 0
+                      implying r₁=r₂, g₁=g₂, b₁=b₂
+                      <br>(⇐) If x = y, then r₁=r₂, g₁=g₂, b₁=b₂, so d(x,y) = 0
+                <br> d(x,y) = d(y,x) follows from |a-b| = |b-a|
+                <br> d(x,z) ≤ d(x,y) + d(y,z) 
+                <br><br>For each component c ∈ {r,g,b}: |c₁-c₃| ≤ |c₁-c₂| + |c₂-c₃|; therefore, max(|c₁-c₃|) ≤ max(|c₁-c₂|) + max(|c₂-c₃|).
+              </div>
+
+              <div class="menu-item">
+                For all x,y ∈ Ω: 
+                <br>d(x,y) ≤ 255
+              </div>
+
+              <div class="menu-item">
+                For x ∈ Ω and S ⊆ Ω, define:
+                <br>D_S(x) = min_{s∈S} d(x,s)
+              </div>
+
+              <div class="menu-item">
+                For S₁ ⊆ S₂ ⊆ Ω and x ∈ Ω:
+                <br> D_S(x) = 0 ⟺ x ∈ S
+                <br>D_{S₁}(x) ≥ D_{S₂}(x)                
+              </div>
+
+              <div class="menu-item">
+                For any P ∈ 𝒫_A:
+                <br>Ω = ⋃_{p∈P} V_p(P) (coverage)
+                <br> For p≠q, V_p(P) ∩ V_q(P) contains only points equidistant to p and q
+                <br> p ∈ V_p(P) for all p ∈ P (center containment)                            
+              </div>
+
+              <div class="menu-item">
+                Define Q: 𝒫_A → ℕ₀:
+                <br>Q(P) = max_{x∈Ω} D_P(x)           
+              </div>
+
+              <div class="menu-item">
+                For any anchor set A with |A| = m and n satisfying 2ⁿ ≥ m, there exists P* ∈ 𝒫_A minimizing Q(P).
+                <br><br>𝒫_A is finite as it contains subsets of Ω
+                <br>Q maps to ℕ₀ which is well-ordered
+                <br>Every finite set of integers has a minimum
+              </div>
+
+              <div class="menu-item">
+                Let P* be optimal for Q. Then, for any x ∈ Ω\P*:
+                <br>Q(P* ∪ {x}\{p}) ≥ Q(P*) for all p ∈ P*\A                
+              </div>
+
+              <div class="menu-item">
+                For optimal P* ∈ 𝒫_A:
+                <br>max_{p,q∈P*} d(p,q) ≤ 2Q(P*)                
+              </div>
+
+              <div class="menu-item">
+                For any P ∈ 𝒫_A and x ∈ Ω:
+                <br>D_P(x) ≤ min(D_A(x), max_{y∈Ω} D_P(y))
+                <br><br> D_P(x) ≤ D_A(x) by A ⊆ P (also, see coverage monotonicity)
+                <br> D_P(x) ≤ max_{y∈Ω} D_P(y)                      
+              </div>
+
+              <div class="menu-item">
+                Input: Anchor set A, target size 2ⁿ
+                <br>Output: P ∈ 𝒫_A
+                <br><br> Initialize P = A
+                <br> While |P| < 2ⁿ:
+                <br> &nbsp; x* = argmax_{x∈Ω} D_P(x)
+                <br> &nbsp; P = P ∪ {x*}
+                <br> Return P                                 
+              </div>
+
+              <div class="menu-item">
+                For anchor set A with max_{a,b∈A} d(a,b) ≤ D, this algorithm produces P with:
+                <br> Q(P) ≤ 2Q(P*) + D        
+                <br> <br>  Each iteration maximally reduces current coverage radius
+                <br>  Initial configuration bound by D
+                <br>  Standard k-center approximation argument modified for fixed anchors                        
+              </div>
+            </div>
+        
+            <p style="margin-top: 2rem; opacity: 0.7;">
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="scripts/generator.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>"JUICEBOX" || Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="nav-container">
+    <div class="nav-segments">
+      <a href="index.html" class="nav-segment">
+        <div class="nav-text">HOME</div>
+      </a>
+      <a href="about.html" class="nav-segment">
+        <div class="nav-text">ABOUT</div>
+      </a>
+      <a href="projects.html" class="nav-segment">
+        <div class="nav-text">PROJECTS</div>
+      </a>
+      <a href="contact.html" class="nav-segment">
+        <div class="nav-text">CONTACT</div>
+      </a>
+    </div>
+  </div>
+ 
+  <section id="section1" class="section landing">
+    <div class="grid-overlay"></div>
+    <div class="landing__content">
+      <h1 class="title">WILL SHEPHERD</h1>
+      <p class="subtitle">SOFTWARE ENGINEER</p>
+    </div>
+    <div class="scan-line"></div>
+    <div class="page-nav">
+      <div class="page-nav__indicator active" data-page="section1"></div>
+      <div class="page-nav__indicator" data-page="section2"></div>
+    </div>
+  </section>
+ 
+  <section id="section2" class="section grid grid--2col">
+    <div class="portrait">
+      <img src="assets/banner.png" alt="Portrait Banner" draggable="false">
+    </div>
+    <div class="menu">
+      <a href="about.html" class="menu-item">ABOUT</a>
+      <a href="projects.html" class="menu-item">PROJECTS</a>
+      <a href="contact.html" class="menu-item">CONTACT</a>
+      <a href="tools.html" class="menu-item">TOOLS</a>
+    </div>
+  </section>
+  <script>
+    document.querySelectorAll('.page-nav__indicator').forEach(indicator => {
+      indicator.addEventListener('click', () => {
+        const targetId = indicator.getAttribute('data-page');
+        document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+       
+        document.querySelectorAll('.page-nav__indicator').forEach(ind => {
+          ind.classList.remove('active');
+        });
+        indicator.classList.add('active');
+      });
+    });
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('.section');
+      const indicators = document.querySelectorAll('.page-nav__indicator');
+     
+      sections.forEach((section, index) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top >= -window.innerHeight/2 && rect.top < window.innerHeight/2) {
+          indicators.forEach(ind => ind.classList.remove('active'));
+          indicators[index].classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
